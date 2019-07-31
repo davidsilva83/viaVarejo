@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button ,Form, FormGroup, Label, Input, FormText, Container, Row, Col, Alert } from 'reactstrap';
+import { Button, Label, Input, Row, Col, Alert } from 'reactstrap';
 
 
 export class Home extends Component {
@@ -14,11 +14,12 @@ export class Home extends Component {
             Nome: 'david',
             Latitude: '1',
             Longitude: '2',
-            listaAmigos: []
+            listaAmigos: [],
+            mensagem: ''
         }
 
         this.salvar = this.salvar.bind(this);
-        this.excluir = this.excluir.bind(this);
+        this.calcular = this.calcular.bind(this);
     }
 
     componentDidMount() {
@@ -41,28 +42,56 @@ export class Home extends Component {
             [e.target.name]: e.target.value
         });
     }
+
+    calcular = () => {
+        fetch('api/CadastroDeAmigos/Calcular')
+            .then(
+                data => data.json()
+                    .then((dados) => {
+                        
+                        this.setState({ mensagem: dados.mensagem });
+                    })
+            );
+    }
+
     
     salvar = async () => {
-        await fetch('api/CadastroDeAmigos/Salvar', {
+        let modelEnvio = {
+            Id: 0,
+            Nome: this.state.Nome,
+            Latitude: this.state.Latitude,
+            Longitude: this.state.Longitude,
+        }
+
+        await fetch('api/CadastroDeAmigos/Cadastrar', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(this.state)
+            body: JSON.stringify(modelEnvio)
         })
         .then(data => {
-            this.buscarAmigos();
-            console.log(JSON.stringify(this.state))
+            this.buscarAmigos();            
         });
     }
 
-    excluir = function (id) {
-        alert(id);
+    excluir = async (ev) => {
+        await fetch('api/CadastroDeAmigos/Apagar', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Id: parseInt(ev.currentTarget.value) })
+        })
+        .then(data => {
+            this.buscarAmigos();
+        });
     }
 
 
-    static renderTabela(model, a) {
+    static renderTabela(model, newthis) {
         let arrayConvertido = []
         if (model.length > 0) {
             arrayConvertido = JSON.parse(model);
@@ -71,42 +100,43 @@ export class Home extends Component {
             <table className='table table-striped'>
                 <thead>
                     <tr>
-                        <th>Nome </th>
+                        <th>Id</th>
+                        <th>Nome</th>
                         <th>Latitude</th>
                         <th>Longitude</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {arrayConvertido.map(amigo =>
+                    {arrayConvertido.map((amigo) => (
                         <tr key={amigo.id}>
+                            <td>{amigo.id}</td>
                             <td>{amigo.nome}</td>
                             <td>{amigo.latitude}</td>
                             <td>{amigo.longitude}</td>
                             <td>
+                                <Button color="primary"
+                                    key={amigo.id}
+                                    value={amigo.id}
+                                    onClick={newthis.excluir}>
+                                    Excluir
+                                 </Button>
                             </td>
-                        </tr>
+                        </tr>)
                     )}                 
                 </tbody>
             </table>
         );
-        //<Button color="primary" onClick={a.excluir(amigo.id)}>
-        //    Excluir
-        //                         </Button>
-
     }
 
 
     render() {
-        var cssBotao = {
-            'margin-top': 10
-        }
 
-        let tabela = Home.renderTabela(this.state.listaAmigos, this);
+    let tabela = Home.renderTabela(this.state.listaAmigos, this);
 
     return (
       <div>
-            <h1>Cadasto de amigos</h1>              
+            <h3>Cadasto de amigos</h3>              
             <Row>
                 <Col xs="6">
                     <Label for="nome">Nome</Label>
@@ -120,17 +150,32 @@ export class Home extends Component {
                     <Label for="Longitude">Longitude</Label>
                     <Input type="text" name="Longitude" id="Longitude" value={this.state.Longitude} onChange={e => this.handleChange(e)} />
                 </Col>
-                <Col xs="6">
-                    <Button style={cssBotao} color="primary" onClick={this.salvar}>
+                <Col xs="2">
+                    <Button style={{ marginTop: '10px' }} color="primary" onClick={this.salvar}>
                         Salvar
                     </Button>
                 </Col>
+                <Col xs="3">
+                    <Button style={{ marginTop: '10px' }} color="primary" onClick={this.calcular}>
+                        Encontrar amigo mais perto
+                    </Button>
+                </Col>
+                <Col xs="6">
+                    <Label style={{ marginTop: '10px' }} >
+                        {this.state.mensagem}
+                    </Label>
+                </Col>
             </Row>
+            <hr />
             <Row>
+                <Col xs="12">
+                    <h3>Lista de amigos cadastrados</h3>  
+                </Col>
                 <Col xs="12">
                     { tabela }
                 </Col>
             </Row>
+            <hr />           
       </div>
     );
   }

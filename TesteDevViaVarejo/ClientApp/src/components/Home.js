@@ -10,13 +10,29 @@ export class Home extends Component {
         super(props);
   
         this.state = {
-            Nome: '',
-            Latitude: '',
-            Longitude: '',
+            id : null,
+            Nome: 'david',
+            Latitude: '1',
+            Longitude: '2',
+            listaAmigos: []
         }
 
         this.salvar = this.salvar.bind(this);
-      
+        this.excluir = this.excluir.bind(this);
+    }
+
+    componentDidMount() {
+        this.buscarAmigos();
+    }
+
+    buscarAmigos = () => {
+        fetch('api/CadastroDeAmigos')
+            .then(
+                data => data.json()
+                .then((dados) => {
+                    this.setState({ listaAmigos: JSON.stringify(dados) });
+                })
+            );
     }
 
     handleChange = (e) => {
@@ -25,10 +41,9 @@ export class Home extends Component {
             [e.target.name]: e.target.value
         });
     }
-
+    
     salvar = async () => {
-
-        await fetch('api/CadastroDeAmigos', {
+        await fetch('api/CadastroDeAmigos/Salvar', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -36,41 +51,66 @@ export class Home extends Component {
             },
             body: JSON.stringify(this.state)
         })
-            .then(data => {
-                console.log(JSON.stringify(this.state))
-            });
+        .then(data => {
+            this.buscarAmigos();
+            console.log(JSON.stringify(this.state))
+        });
     }
 
-//     <table className='table table-striped'>
-//    <thead>
-//        <tr>
-//            <th>Nome </th>
-//            <th>Latitude</th>
-//            <th>Longitude</th>
-//            <th></th>
-//        </tr>
-//    </thead>
-//    <tbody>
-//        <tr>
-//            <td><input type="text" /></td>
-//            <td><input type="text" /></td>
-//            <td><input type="text" /></td>
-//            <td><input type="button" name="Salvar" value="Salvar" />   </td>
-//        </tr>
-//    </tbody>
-//</table>
+    excluir = function (id) {
+        alert(id);
+    }
+
+
+    static renderTabela(model, a) {
+        let arrayConvertido = []
+        if (model.length > 0) {
+            arrayConvertido = JSON.parse(model);
+        }
+        return (
+            <table className='table table-striped'>
+                <thead>
+                    <tr>
+                        <th>Nome </th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {arrayConvertido.map(amigo =>
+                        <tr key={amigo.id}>
+                            <td>{amigo.nome}</td>
+                            <td>{amigo.latitude}</td>
+                            <td>{amigo.longitude}</td>
+                            <td>
+                            </td>
+                        </tr>
+                    )}                 
+                </tbody>
+            </table>
+        );
+        //<Button color="primary" onClick={a.excluir(amigo.id)}>
+        //    Excluir
+        //                         </Button>
+
+    }
+
 
     render() {
         var cssBotao = {
             'margin-top': 10
         }
+
+        let tabela = Home.renderTabela(this.state.listaAmigos, this);
+
     return (
       <div>
             <h1>Cadasto de amigos</h1>              
             <Row>
                 <Col xs="6">
-                    <Label for="Nome">Nome</Label>
-                    <Input type="text" name="Nome" id="Nome" value={this.state.Nome} onChange={e => this.handleChange(e)} />
+                    <Label for="nome">Nome</Label>
+                    <Input type="text" name="Nome" id="nome" value={this.state.Nome} onChange={e => this.handleChange(e)} />
                 </Col>
                 <Col xs="3">
                     <Label for="Latitude">Latitude</Label>
@@ -87,11 +127,10 @@ export class Home extends Component {
                 </Col>
             </Row>
             <Row>
-                <Col xs="1">
-                  
-                </Col>                
-            </Row>      
-           
+                <Col xs="12">
+                    { tabela }
+                </Col>
+            </Row>
       </div>
     );
   }

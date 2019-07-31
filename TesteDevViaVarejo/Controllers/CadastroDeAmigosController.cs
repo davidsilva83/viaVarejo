@@ -8,7 +8,8 @@ using TesteDevViaVarejo.Model;
 namespace TesteDevViaVarejo.Controllers
 {
     [Route("api/[controller]")]
-    public class CadastroDeAmigosController : Controller
+    [ApiController]
+    public class CadastroDeAmigosController : ControllerBase
     {
         private readonly Context _context;
 
@@ -17,19 +18,38 @@ namespace TesteDevViaVarejo.Controllers
             _context = context;
         }
 
-        //api/CadastroDeAmigos/
-        [HttpPost]
-        public async void Salvar(CadastroDeAmigos model)
+        [HttpGet]
+        public JsonResult BuscarAmigos()
         {
+  
+            var listaDeAmigos = from cadastro in _context.CadastroDeAmigos
+                                orderby cadastro.Nome
+                                select new
+                                {
+                                    cadastro.Id,
+                                    cadastro.Nome,
+                                    cadastro.Longitude,
+                                    cadastro.Latitude
+                                };
 
-            string a = model.Nome;
-            _context.CadastroDeAmigos.Add(model);
-            await _context.SaveChangesAsync();
-
+            return new JsonResult(listaDeAmigos);
         }
 
 
-        public class cadastro
+        //api/CadastroDeAmigos/
+        [HttpPost("Salvar")]
+        public async Task Salvar(CadastrarNovoAmigo model)
+        {
+            CadastroDeAmigos cadastro = new CadastroDeAmigos();
+            cadastro.Nome = model.Nome;
+            cadastro.Latitude = model.Latitude;
+            cadastro.Longitude = model.Longitude;
+            _context.CadastroDeAmigos.Add(cadastro);
+            await _context.SaveChangesAsync();
+        }
+
+
+        public class CadastrarNovoAmigo
         {
             public string Nome { get; set; }
             public string Latitude { get; set; }

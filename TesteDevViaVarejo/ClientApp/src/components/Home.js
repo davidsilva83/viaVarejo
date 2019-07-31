@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Label, Input, Row, Col, Alert } from 'reactstrap';
+import { Button, Label, Input, Row, Col } from 'reactstrap';
 
 
 export class Home extends Component {
@@ -11,9 +11,9 @@ export class Home extends Component {
   
         this.state = {
             id : null,
-            Nome: 'david',
-            Latitude: '1',
-            Longitude: '2',
+            Nome: '',
+            Latitude: '',
+            Longitude: '',
             listaAmigos: [],
             mensagem: ''
         }
